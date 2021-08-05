@@ -52,6 +52,5 @@
     "jsonc-parser": "^3.0.0",
     "jsonic": "github:jsonicjs/jsonic#nextgen"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

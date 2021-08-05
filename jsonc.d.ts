@@ -1,3 +1,8 @@
 import { Jsonic } from 'jsonic';
-declare function Jsonc(jsonic: Jsonic): void;
-export { Jsonc };
+declare type JsoncOptions = {
+    allowTrailingComma?: boolean;
+    disallowComments?: boolean;
+};
+declare function Jsonc(jsonic: Jsonic, options: JsoncOptions): void;
+export { Jsonc, };
+export type { JsoncOptions, };
