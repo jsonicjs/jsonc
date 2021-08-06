@@ -2,9 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Jsonc = void 0;
 function Jsonc(jsonic, options) {
+    // TODO: merge these calls
     jsonic.options({
-        // TODO: replace with a Jsonic.options('json') preset
-        // TODO: need to accept params for rule include ... hmmm
         text: { lex: false },
         number: { hex: false, oct: false, bin: false, sep: null },
         string: { chars: '"', multiChars: '', allowUnknown: false, escape: { v: null } },

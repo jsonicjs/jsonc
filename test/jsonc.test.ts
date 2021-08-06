@@ -155,10 +155,10 @@ describe('jsonc', () => {
 
 
   test('errors', () => {
-    // TODO
-    // j('', { log: -1 })
-    // expect(() => j('')).toThrow()
     expect(() => j('1,1')).toThrow()
+
+    // TODO: needs core feature to handle this case
+    expect(() => j('')).toThrow()
   })
 
 
@@ -216,8 +216,8 @@ describe('jsonc', () => {
     expect(() => j('["foo", null, ]')).toThrow()
 
     // TODO
-    //expect(j('["foo", null,, ]')).toEqual(["foo", null, ,])
-    //expect(j('[["foo", null,, ],')).toEqual([["foo", null, ,],)
+    expect(() => j('["foo", null,, ]')).toThrow()
+    expect(() => j('[["foo", null,, ],')).toThrow()
 
     expect(j('true')).toEqual(true)
     expect(j('false')).toEqual(false)
@@ -226,36 +226,29 @@ describe('jsonc', () => {
     expect(j('-1.93e-19')).toEqual(-1.93e-19)
     expect(j('"hello"')).toEqual("hello")
 
-    //   expect(j('[]', { type: 'array', offset: 0, length: 2, children: [] });
-    //   expect(j('[ 1 ]', { type: 'array', offset: 0, length: 5, children: [{ type: 'number', offset: 2, length: 1, value: 1 }] });
-    //   expect(j('[ 1,"x"]', {
-    //   expect(j('[[]]', {
-    //   expect(j('{ }', { type: 'object', offset: 0, length: 3, children: [] });
-    //   expect(j('{ "val": 1 }', {
-    //   expect(j('{"id": "$", "v": [ null, null] }',
-    //   expect(j('{  "id": { "foo": { } } , }',
-    //     { error: ParseErrorCode.PropertyNameExpected, offset: 26, length: 1 },
-    //     { error: ParseErrorCode.ValueExpected, offset: 26, length: 1 }
-    //   ]);
-    // });
+    expect(j('[]')).toEqual([])
+    expect(j('[ 1 ]')).toEqual([1])
+    expect(j('[ 1, "x"]')).toEqual([1, "x"])
+    expect(j('[[]]')).toEqual([[]])
+    expect(j('{ }')).toEqual({})
+    expect(j('{ "val": 1 }')).toEqual({ "val": 1 })
+    expect(j('{"id": "$", "v": [ null, null] }'))
+      .toEqual({ "id": "$", "v": [null, null] })
 
-    // expect(j('{ }', [{ id: 'onObjectBegin', text: '{', startLine: 0, startCharacter: 0 }, { id: 'onObjectEnd', text: '}', startLine: 0, startCharacter: 2 }]);
-    // expect(j('{ "foo": "bar" }', [
-    // expect(j('{ "foo": { "goo": 3 } }', [
-    // expect(j('[]', [{ id: 'onArrayBegin', text: '[', startLine: 0, startCharacter: 0 }, { id: 'onArrayEnd', text: ']', startLine: 0, startCharacter: 1 }]);
-    // expect(j('[ true, null, [] ]', [
-    // expect(j('[\r\n0,\r\n1,\r\n2\r\n]', [
-    // expect(j('/* g */ { "foo": //f\n"bar" }', [
-    // expect(j('/* g\r\n */ { "foo": //f\n"bar" }', [
-    // expect(j('/* g\n */ { "foo": //f\n"bar"\n}',
-    //   { error: ParseErrorCode.InvalidCommentToken, offset: 0, length: 8, startLine: 0, startCharacter: 0 },
-    //   { error: ParseErrorCode.InvalidCommentToken, offset: 18, length: 3, startLine: 1, startCharacter: 13 },
-    // expect(j('{"prop1":"foo","prop2":"foo2","prop3":{"prp1":{""}}}', [
-    // ], [{ error: ParseErrorCode.ColonExpected, offset: 49, length: 1, startLine: 0, startCharacter: 49 }]);
+    expect(() => j('{  "id": { "foo": { } } , }')).toThrow()
 
-    //          expect(j('{"prop1":"foo","prop2":"foo2","prop3":{"prp1":{""}}}', {
-
-    //   expect(j('{ "key1": { "key11": [ "val111", "val112" ] }, "key2": [ { "key21": false, "key22": 221 }, null, [{}] ] }');
+    expect(j('{ }')).toEqual({}) //, [{ id: 'onObjectBegin', text: '{', startLine: 0, startCharacter: 0 }, { id: 'onObjectEnd', text: '}', startLine: 0, startCharacter: 2 }]);
+    expect(j('{ "foo": "bar" }')).toEqual({ "foo": "bar" })
+    expect(j('{ "foo": { "goo": 3 } }')).toEqual({ "foo": { "goo": 3 } })
+    expect(j('[]')).toEqual([])
+    expect(j('[ true, null, [] ]')).toEqual([true, null, []])
+    expect(j('[\r\n0,\r\n1,\r\n2\r\n]')).toEqual([0, 1, 2])
+    expect(j('/* g */ { "foo": //f\n"bar" }')).toEqual({ foo: 'bar' })
+    expect(j('/* g\r\n */ { "foo": //f\n"bar" }')).toEqual({ foo: 'bar' })
+    expect(j('/* g\n */ { "foo": //f\n"bar"\n}')).toEqual({ foo: 'bar' })
+    expect(() => j('{"prop1":"foo","prop2":"foo2","prop3":{"prp1":{""}}}')).toThrow()
+    expect(j('{ "key1": { "key11": [ "val111", "val112" ] }, "key2": [ { "key21": false, "key22": 221 }, null, [{}] ] }'))
+      .toEqual({ "key1": { "key11": ["val111", "val112"] }, "key2": [{ "key21": false, "key22": 221 }, null, [{}]] })
 
   })
 })

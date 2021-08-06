@@ -8,9 +8,9 @@ type JsoncOptions = {
 }
 
 function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
+  // TODO: merge these calls
+
   jsonic.options({
-    // TODO: replace with a Jsonic.options('json') preset
-    // TODO: need to accept params for rule include ... hmmm
     text: { lex: false },
     number: { hex: false, oct: false, bin: false, sep: null },
     string: { chars: '"', multiChars: '', allowUnknown: false, escape: { v: null } },
