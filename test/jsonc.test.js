@@ -127,7 +127,6 @@ describe('jsonc', () => {
     });
     test('errors', () => {
         expect(() => j('1,1')).toThrow();
-        // TODO: needs core feature to handle this case
         expect(() => j('')).toThrow();
     });
     test('disallow comments', () => {

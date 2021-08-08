@@ -9,6 +9,7 @@ function Jsonc(jsonic, options) {
         string: { chars: '"', multiChars: '', allowUnknown: false, escape: { v: null } },
         comment: { lex: false },
         map: { extend: false },
+        lex: { empty: false },
         rule: {
             finish: false,
             include: 'json' + (options.allowTrailingComma ? ',comma' : '')
