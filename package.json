@@ -20,7 +20,8 @@
     "url": "git://github.com/jsonicic/variant-jsonc.git"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --coverage",
+    "test-some": "jest -t",
     "watch": "tsc -w -d",
     "build": "tsc -d && cp jsonc.js jsonc.min.js && browserify -o jsonc.min.js -e jsonc.js -s @JsonicJsonc -im -i assert -p tinyify",
     "prettier": "prettier --write --no-semi --single-quote *.ts test/*.js",
