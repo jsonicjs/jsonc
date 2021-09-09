@@ -4,5 +4,5 @@ declare type JsoncOptions = {
     disallowComments?: boolean;
 };
 declare function Jsonc(jsonic: Jsonic, options: JsoncOptions): void;
-export { Jsonc, };
-export type { JsoncOptions, };
+export { Jsonc };
+export type { JsoncOptions };

@@ -1,11 +1,11 @@
 {
   "name": "@jsonic/jsonc",
   "version": "0.0.1",
-  "main": "@jsonic/jsonc.js",
+  "description": "Jsonic plugin for the JSONC variant of JSON.",
+  "main": "jsonc.js",
   "type": "commonjs",
-  "browser": "@jsonic/jsonc.min.js",
-  "types": "@jsonic/jsonc.d.ts",
-  "description": "JSONC",
+  "browser": "jsonc.min.js",
+  "types": "jsonc.d.ts",
   "homepage": "https://github.com/jsonicjs/variant-jsonc",
   "keywords": [
     "pattern",
@@ -17,11 +17,12 @@
   "author": "Richard Rodger (http://richardrodger.com)",
   "repository": {
     "type": "git",
-    "url": "git://github.com/jsonicic/variant-jsonc.git"
+    "url": "git://github.com/jsonicjs/variant-jsonc.git"
   },
   "scripts": {
     "test": "jest --coverage",
     "test-some": "jest -t",
+    "test-watch": "jest --coverage --watchAll",
     "watch": "tsc -w -d",
     "build": "tsc -d && cp jsonc.js jsonc.min.js && browserify -o jsonc.min.js -e jsonc.js -s @JsonicJsonc -im -i assert -p tinyify",
     "prettier": "prettier --write --no-semi --single-quote *.ts test/*.js",
@@ -29,7 +30,7 @@
     "reset": "npm run clean && npm i && npm test",
     "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
     "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
-    "repo-publish-quick": "npm run prettier && npm run build && npm run test && npm run test-web && npm run repo-tag && npm publish --registry http://registry.npmjs.org "
+    "repo-publish-quick": "npm run prettier && npm run build && npm run test && npm run repo-tag && npm publish --registry http://registry.npmjs.org "
   },
   "license": "MIT",
   "files": [
@@ -39,17 +40,15 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@hapi/code": "^8.0.3",
-    "@hapi/lab": "^24.3.2",
-    "@types/jest": "^26.0.24",
+    "@types/jest": "^27.0.1",
     "browserify": "^17.0.0",
     "hapi-lab-shim": "0.0.2",
-    "jest": "^27.0.6",
+    "jest": "^27.1.1",
     "lab-transform-typescript": "^3.0.1",
-    "prettier": "^2.3.2",
+    "prettier": "^2.4.0",
     "tinyify": "^3.0.0",
-    "ts-jest": "^27.0.4",
-    "typescript": "^4.3.5",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.4.2",
     "jsonc-parser": "^3.0.0",
     "jsonic": "github:jsonicjs/jsonic#nextgen"
   },
