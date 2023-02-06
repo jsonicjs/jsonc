@@ -1,7 +1,7 @@
 /* Copyright (c) 2021 Richard Rodger and other contributors, MIT License */
 
 
-import { Jsonic } from 'jsonic'
+import { Jsonic } from '@jsonic/jsonic-next'
 import { Jsonc } from '../jsonc'
 
 

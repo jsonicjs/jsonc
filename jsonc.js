@@ -1,4 +1,5 @@
 "use strict";
+/* Copyright (c) 2021-2023 Richard Rodger, MIT License */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Jsonc = void 0;
 function Jsonc(jsonic, options) {
@@ -11,6 +12,7 @@ function Jsonc(jsonic, options) {
             oct: false,
             bin: false,
             sep: null,
+            exclude: /^\./
         },
         string: {
             chars: '"',
@@ -31,8 +33,17 @@ function Jsonc(jsonic, options) {
         },
         rule: {
             finish: false,
-            include: 'json' + (options.allowTrailingComma ? ',comma' : ''),
+            include: 'jsonc,json' + (options.allowTrailingComma ? ',comma' : ''),
         },
+    });
+    const { ZZ } = jsonic.token;
+    jsonic.rule('val', (rs) => {
+        rs.open([
+            {
+                s: [ZZ],
+                g: 'jsonc'
+            }
+        ]);
     });
 }
 exports.Jsonc = Jsonc;

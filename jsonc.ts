@@ -1,4 +1,11 @@
-import { Jsonic } from 'jsonic'
+/* Copyright (c) 2021-2023 Richard Rodger, MIT License */
+
+// Import Jsonic types used by plugin.
+import {
+  Jsonic,
+  RuleSpec,
+} from '@jsonic/jsonic-next'
+
 
 type JsoncOptions = {
   allowTrailingComma?: boolean
@@ -15,6 +22,7 @@ function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
       oct: false,
       bin: false,
       sep: null,
+      exclude: /^\./
     },
     string: {
       chars: '"',
@@ -35,8 +43,19 @@ function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
     },
     rule: {
       finish: false,
-      include: 'json' + (options.allowTrailingComma ? ',comma' : ''),
+      include: 'jsonc,json' + (options.allowTrailingComma ? ',comma' : ''),
     },
+  })
+
+  const { ZZ } = jsonic.token
+
+  jsonic.rule('val', (rs: RuleSpec) => {
+    rs.open([
+      {
+        s: [ZZ],
+        g: 'jsonc'
+      }
+    ])
   })
 }
 

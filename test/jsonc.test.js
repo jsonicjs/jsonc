@@ -1,9 +1,9 @@
 "use strict";
 /* Copyright (c) 2021 Richard Rodger and other contributors, MIT License */
 Object.defineProperty(exports, "__esModule", { value: true });
-const jsonic_1 = require("jsonic");
+const jsonic_next_1 = require("@jsonic/jsonic-next");
 const jsonc_1 = require("../jsonc");
-const j = jsonic_1.Jsonic.make().use(jsonc_1.Jsonc);
+const j = jsonic_next_1.Jsonic.make().use(jsonc_1.Jsonc);
 describe('jsonc', () => {
     test('happy', () => {
         expect(j('{"a":1}')).toEqual({ a: 1 });
@@ -130,13 +130,13 @@ describe('jsonc', () => {
         expect(() => j('')).toThrow();
     });
     test('disallow comments', () => {
-        const nc = jsonic_1.Jsonic.make().use(jsonc_1.Jsonc, { disallowComments: true });
+        const nc = jsonic_next_1.Jsonic.make().use(jsonc_1.Jsonc, { disallowComments: true });
         expect(nc('[ 1, 2, null, "foo" ]')).toEqual([1, 2, null, 'foo']);
         expect(nc('{ "hello": [], "world": {} }')).toEqual({ hello: [], world: {} });
         expect(() => nc('{ "foo": /*comment*/ true }')).toThrow();
     });
     test('trailing comma', () => {
-        const jc = jsonic_1.Jsonic.make().use(jsonc_1.Jsonc, { allowTrailingComma: true });
+        const jc = jsonic_next_1.Jsonic.make().use(jsonc_1.Jsonc, { allowTrailingComma: true });
         expect(jc('{ "hello": [], }')).toEqual({ hello: [] });
         expect(jc('{ "hello": [] }')).toEqual({ hello: [] });
         expect(jc('{ "hello": [], "world": {}, }')).toEqual({ hello: [], world: {} });
