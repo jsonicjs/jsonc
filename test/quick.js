@@ -15,4 +15,4 @@ const jsonc = Jsonic.make()
 
 // console.dir(jsonc(`// comment`),{depth:null})
 // console.dir(jsonc('"\\v"'),{depth:null})
-console.dir(jsonc('.0'),{depth:null})
+console.dir(jsonc('.0'), { depth: null })

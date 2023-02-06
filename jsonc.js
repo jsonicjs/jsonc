@@ -12,7 +12,7 @@ function Jsonc(jsonic, options) {
             oct: false,
             bin: false,
             sep: null,
-            exclude: /^\./
+            exclude: /^\./,
         },
         string: {
             chars: '"',
@@ -41,8 +41,8 @@ function Jsonc(jsonic, options) {
         rs.open([
             {
                 s: [ZZ],
-                g: 'jsonc'
-            }
+                g: 'jsonc',
+            },
         ]);
     });
 }
