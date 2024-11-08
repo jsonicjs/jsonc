@@ -1,6 +1,6 @@
 {
   "name": "@jsonic/jsonc",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "This plugin allows the [Jsonic](https://jsonic.senecajs.org) JSON parser to support JSONC syntax.",
   "main": "jsonc.js",
   "type": "commonjs",
@@ -50,10 +50,10 @@
     "typescript": "^5.6.3",
     "es-jest": "^2.1.0",
     "esbuild": "^0.24.0",
-    "@jsonic/jsonic-next": ">=2.13.0"
+    "@jsonic/jsonic-next": ">=2.14.0"
   },
   "dependencies": {},
   "peerDependencies": {
-    "@jsonic/jsonic-next": ">=2.13.0"
+    "@jsonic/jsonic-next": ">=2.14.0"
   }
 }

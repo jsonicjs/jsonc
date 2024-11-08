@@ -1,7 +1,7 @@
 "use strict";
 /* Copyright (c) 2021-2023 Richard Rodger, MIT License */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Jsonc = void 0;
+exports.Jsonc = Jsonc;
 function Jsonc(jsonic, options) {
     jsonic.options({
         text: {
@@ -46,5 +46,4 @@ function Jsonc(jsonic, options) {
         ]);
     });
 }
-exports.Jsonc = Jsonc;
 //# sourceMappingURL=jsonc.js.map
