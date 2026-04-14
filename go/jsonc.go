@@ -83,6 +83,8 @@ const grammarText = `
 # Parsed by a standard Jsonic instance and passed to jsonic.grammar()
 # Extends standard JSON grammar with end-of-input value handling.
 # Trailing commas are added programmatically via rule modification.
+#
+# Note: number.exclude uses a regex and must be set in code.
 
 {
   options: text: { lex: false }

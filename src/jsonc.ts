@@ -1,7 +1,7 @@
 /* Copyright (c) 2021-2025 Richard Rodger, MIT License */
 
 // Import Jsonic types used by plugin.
-import { Jsonic, RuleSpec } from 'jsonic'
+import { Jsonic } from 'jsonic'
 
 type JsoncOptions = {
   allowTrailingComma?: boolean
@@ -14,6 +14,8 @@ const grammarText = `
 # Parsed by a standard Jsonic instance and passed to jsonic.grammar()
 # Extends standard JSON grammar with end-of-input value handling.
 # Trailing commas are added programmatically via rule modification.
+#
+# Note: number.exclude uses a regex and must be set in code.
 
 {
   options: text: { lex: false }
@@ -36,11 +38,11 @@ const grammarText = `
 
 function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
 
-  // Apply grammar options and rules.
+  // Apply grammar: static options and the val ZZ rule alt.
   const grammar = Jsonic.make()(grammarText)
   jsonic.grammar(grammar)
 
-  // Runtime options not expressible in grammar.
+  // Runtime options that depend on plugin arguments or need JS types.
   jsonic.options({
     comment: {
       lex: true !== options.disallowComments,
@@ -51,17 +53,6 @@ function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
     rule: {
       include: 'jsonc,json' + (options.allowTrailingComma ? ',comma' : ''),
     },
-  })
-
-  const { ZZ } = jsonic.token
-
-  jsonic.rule('val', (rs: RuleSpec) => {
-    rs.open([
-      {
-        s: [ZZ],
-        g: 'jsonc',
-      },
-    ])
   })
 }
 
