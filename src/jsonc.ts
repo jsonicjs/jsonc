@@ -37,10 +37,7 @@ const grammarText = `
 function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
 
   // Apply grammar: static options and val ZZ rule alt.
-  // The @/regexp/ syntax in number.exclude is resolved to a RegExp
-  // by resolveFuncRefs inside jsonic.grammar().
-  const grammar = Jsonic.make()(grammarText)
-  jsonic.grammar(grammar)
+  jsonic.grammar(Jsonic.make()(grammarText))
 
   // Runtime options that depend on plugin arguments.
   jsonic.options({

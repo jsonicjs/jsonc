@@ -3,8 +3,6 @@
 package jsonc
 
 import (
-	"regexp"
-
 	jsonic "github.com/jsonicjs/jsonic/go"
 )
 
@@ -77,21 +75,13 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	allowTrailingComma, _ := pluginOpts["allowTrailingComma"].(bool)
 	disallowComments, _ := pluginOpts["disallowComments"].(bool)
 
-	// Parse grammar text and apply options + val ZZ rule.
-	parsed, err := jsonic.Parse(grammarText)
-	if err != nil {
-		panic("failed to parse jsonc grammar: " + err.Error())
-	}
-	gm := parsed.(map[string]any)
-	optsMap := gm["options"].(map[string]any)
-
-	// @/^\./ resolves to *regexp.Regexp but MapToOptions needs func(string) bool.
-	if numMap, ok := optsMap["number"].(map[string]any); ok {
-		numMap["exclude"] = regexp.MustCompile(`^\.`).MatchString
+	// Apply grammar options from text.
+	if err := j.GrammarText(grammarText); err != nil {
+		panic("failed to apply jsonc grammar: " + err.Error())
 	}
 
+	// Apply val ZZ rule (GrammarText handles options only, not rules).
 	j.Grammar(&jsonic.GrammarSpec{
-		OptionsMap: optsMap,
 		Rule: map[string]*jsonic.GrammarRuleSpec{
 			"val": {
 				Open: &jsonic.GrammarAltListSpec{
@@ -102,7 +92,7 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 		},
 	})
 
-	// Runtime options and options not handled by MapToOptions (text, lex).
+	// Runtime options and options not handled by MapToOptions (text).
 	j.SetOptions(jsonic.Options{
 		Text:    &jsonic.TextOptions{Lex: boolPtr(false)},
 		Comment: &jsonic.CommentOptions{Lex: boolPtr(!disallowComments)},
