@@ -25,5 +25,12 @@ test/coverage.html
 
 coverage
 
+dist
+dist-test
+*.tsbuildinfo
+
 package-lock.json
 yarn.lock
+
+# Go
+go/vendor/
