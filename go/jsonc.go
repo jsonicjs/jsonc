@@ -68,13 +68,10 @@ const grammarText = `
 # Parsed by a standard Jsonic instance and passed to jsonic.grammar()
 # Extends standard JSON grammar with end-of-input value handling.
 # Trailing commas are added programmatically via rule modification.
-#
-# Function references (@ prefixed) are resolved against the refs map:
-#   @exclude-leading-dot  - rejects numbers starting with '.'
 
 {
   options: text: { lex: false }
-  options: number: { hex: false oct: false bin: false sep: null exclude: '@exclude-leading-dot' }
+  options: number: { hex: false oct: false bin: false sep: null exclude: "@/^\\./" }
   options: string: { chars: '"' multiChars: '' allowUnknown: false }
   options: string: escape: { v: null }
   options: map: { extend: false }
@@ -104,10 +101,13 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	}
 	pm := parsed.(map[string]any)
 	optsMap, _ := pm["options"].(map[string]any)
+	// The grammar uses @/^\./ for number.exclude which ResolveFuncRefs
+	// converts to *regexp.Regexp. In Go, MapToOptions needs func(string) bool,
+	// so we pre-resolve the exclude value in OptionsMap directly.
+	if numMap, ok := optsMap["number"].(map[string]any); ok {
+		numMap["exclude"] = regexp.MustCompile(`^\.`).MatchString
+	}
 	gs := &jsonic.GrammarSpec{
-		Ref: map[jsonic.FuncRef]any{
-			"@exclude-leading-dot": regexp.MustCompile(`^\.`).MatchString,
-		},
 		OptionsMap: optsMap,
 	}
 	ruleMap, _ := pm["rule"].(map[string]any)

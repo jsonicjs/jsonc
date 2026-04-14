@@ -14,13 +14,10 @@ const grammarText = `
 # Parsed by a standard Jsonic instance and passed to jsonic.grammar()
 # Extends standard JSON grammar with end-of-input value handling.
 # Trailing commas are added programmatically via rule modification.
-#
-# Function references (@ prefixed) are resolved against the refs map:
-#   @exclude-leading-dot  - rejects numbers starting with '.'
 
 {
   options: text: { lex: false }
-  options: number: { hex: false oct: false bin: false sep: null exclude: '@exclude-leading-dot' }
+  options: number: { hex: false oct: false bin: false sep: null exclude: "@/^\\\\./" }
   options: string: { chars: '"' multiChars: '' allowUnknown: false }
   options: string: escape: { v: null }
   options: map: { extend: false }
@@ -39,18 +36,16 @@ const grammarText = `
 
 function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
 
-  // Apply grammar: static options and the val ZZ rule alt.
+  // Apply grammar: static options and val ZZ rule alt.
+  // The @/regexp/ syntax in number.exclude is resolved to a RegExp
+  // by resolveFuncRefs inside jsonic.grammar().
   const grammar = Jsonic.make()(grammarText)
   jsonic.grammar(grammar)
 
-  // Runtime options that depend on plugin arguments, and
-  // number.exclude which requires JS funcref resolution.
+  // Runtime options that depend on plugin arguments.
   jsonic.options({
     comment: {
       lex: true !== options.disallowComments,
-    },
-    number: {
-      exclude: /^\./,
     },
     rule: {
       include: 'jsonc,json' + (options.allowTrailingComma ? ',comma' : ''),
