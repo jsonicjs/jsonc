@@ -34,7 +34,6 @@ func MakeJsonic(opts ...JsoncOptions) *jsonic.Jsonic {
 		o = opts[0]
 	}
 
-	// lex.empty is stored on the Jsonic struct in Make(), not in the config.
 	j := jsonic.Make(jsonic.Options{
 		Lex: &jsonic.LexOptions{Empty: boolPtr(false)},
 	})
@@ -75,26 +74,13 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	allowTrailingComma, _ := pluginOpts["allowTrailingComma"].(bool)
 	disallowComments, _ := pluginOpts["disallowComments"].(bool)
 
-	// Apply grammar options from text.
+	// Apply grammar: options and val ZZ rule from text.
 	if err := j.GrammarText(grammarText); err != nil {
 		panic("failed to apply jsonc grammar: " + err.Error())
 	}
 
-	// Apply val ZZ rule (GrammarText handles options only, not rules).
-	j.Grammar(&jsonic.GrammarSpec{
-		Rule: map[string]*jsonic.GrammarRuleSpec{
-			"val": {
-				Open: &jsonic.GrammarAltListSpec{
-					Alts:   []*jsonic.GrammarAltSpec{{S: "#ZZ", G: "jsonc"}},
-					Inject: &jsonic.GrammarInjectSpec{Append: true},
-				},
-			},
-		},
-	})
-
-	// Runtime options and options not handled by MapToOptions (text).
+	// Runtime options that depend on plugin arguments.
 	j.SetOptions(jsonic.Options{
-		Text:    &jsonic.TextOptions{Lex: boolPtr(false)},
 		Comment: &jsonic.CommentOptions{Lex: boolPtr(!disallowComments)},
 		Rule:    &jsonic.RuleOptions{Exclude: "jsonic,imp"},
 	})
