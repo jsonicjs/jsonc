@@ -44,7 +44,10 @@ tags-go:
 	git tag -l 'go/v*' --sort=-version:refname
 
 reset:
-	npm run reset
+	rm -rf dist node_modules package-lock.json
+	npm install
+	npm run build
+	npm test
 	cd go && go clean -cache
 	cd go && go build ./...
 	cd go && go test -v ./...

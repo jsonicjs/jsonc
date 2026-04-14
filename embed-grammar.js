@@ -7,7 +7,7 @@ const fs = require('fs')
 const path = require('path')
 
 const GRAMMAR_FILE = path.join(__dirname, 'jsonc-grammar.jsonic')
-const TS_FILE = path.join(__dirname, 'jsonc.ts')
+const TS_FILE = path.join(__dirname, 'src', 'jsonc.ts')
 const GO_FILE = path.join(__dirname, 'go', 'jsonc.go')
 
 const BEGIN = '// --- BEGIN EMBEDDED jsonc-grammar.jsonic ---'

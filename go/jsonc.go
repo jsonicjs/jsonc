@@ -85,6 +85,14 @@ const grammarText = `
 # Trailing commas are added programmatically via rule modification.
 
 {
+  options: text: { lex: false }
+  options: number: { hex: false oct: false bin: false sep: null }
+  options: string: { chars: '"' multiChars: '' allowUnknown: false }
+  options: string: escape: { v: null }
+  options: map: { extend: false }
+  options: lex: { empty: false }
+  options: rule: { finish: false }
+
   rule: val: open: {
     alts: [
       { s: '#ZZ' g: jsonc }
@@ -93,7 +101,6 @@ const grammarText = `
   }
 }
 `
-
 // --- END EMBEDDED jsonc-grammar.jsonic ---
 
 // jsoncPlugin is the jsonic plugin that configures JSONC parsing.
