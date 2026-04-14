@@ -6,36 +6,6 @@ import (
 	jsonic "github.com/jsonicjs/jsonic/go"
 )
 
-// JsoncOptions configures the JSONC parser.
-type JsoncOptions struct {
-	AllowTrailingComma *bool
-	DisallowComments   *bool
-}
-
-// Parse parses a JSONC string and returns the result.
-func Parse(src string, opts ...JsoncOptions) (any, error) {
-	var o JsoncOptions
-	if len(opts) > 0 {
-		o = opts[0]
-	}
-	return MakeJsonic(o).Parse(src)
-}
-
-// MakeJsonic creates a jsonic instance configured for JSONC parsing.
-func MakeJsonic(opts ...JsoncOptions) *jsonic.Jsonic {
-	var o JsoncOptions
-	if len(opts) > 0 {
-		o = opts[0]
-	}
-
-	j := jsonic.Make()
-	j.Use(Jsonc, map[string]any{
-		"allowTrailingComma": boolOpt(o.AllowTrailingComma, false),
-		"disallowComments":   boolOpt(o.DisallowComments, false),
-	})
-	return j
-}
-
 // --- BEGIN EMBEDDED jsonc-grammar.jsonic ---
 const grammarText = `
 # JSONC Grammar Definition
@@ -97,11 +67,4 @@ func Jsonc(j *jsonic.Jsonic, pluginOpts map[string]any) {
 func toBool(v any) bool {
 	b, _ := v.(bool)
 	return b
-}
-
-func boolOpt(p *bool, def bool) bool {
-	if p != nil {
-		return *p
-	}
-	return def
 }

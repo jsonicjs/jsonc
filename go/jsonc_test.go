@@ -6,11 +6,20 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	jsonic "github.com/jsonicjs/jsonic/go"
 )
 
-func boolPtr(b bool) *bool { return &b }
+func makeJsonc(opts ...map[string]any) *jsonic.Jsonic {
+	j := jsonic.Make()
+	if len(opts) > 0 {
+		j.Use(Jsonc, opts[0])
+	} else {
+		j.Use(Jsonc)
+	}
+	return j
+}
 
-// assert is a test helper that checks deep equality.
 func assert(t *testing.T, name string, got, want any) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
@@ -29,8 +38,12 @@ func assertError(t *testing.T, name string, err error, contains string) {
 	}
 }
 
+var j = makeJsonc()
+
+func parse(src string) (any, error) { return j.Parse(src) }
+
 func TestHappy(t *testing.T) {
-	r, err := Parse(`{"a":1}`)
+	r, err := parse(`{"a":1}`)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,242 +51,242 @@ func TestHappy(t *testing.T) {
 }
 
 func TestComments(t *testing.T) {
-	r, err := Parse("// this is a comment")
+	r, err := parse("// this is a comment")
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert(t, "single-line", r, nil)
 
-	r, err = Parse("// this is a comment\n")
+	r, err = parse("// this is a comment\n")
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert(t, "single-line-newline", r, nil)
 
-	r, err = Parse("/* this is a comment*/")
+	r, err = parse("/* this is a comment*/")
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert(t, "block", r, nil)
 
-	r, err = Parse("/* this is a \r\ncomment*/")
+	r, err = parse("/* this is a \r\ncomment*/")
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert(t, "block-crlf", r, nil)
 
-	r, err = Parse("/* this is a \ncomment*/")
+	r, err = parse("/* this is a \ncomment*/")
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert(t, "block-lf", r, nil)
 
-	_, err = Parse("/* this is a")
+	_, err = parse("/* this is a")
 	assertError(t, "unterminated-block", err, "unterminated_comment")
 
-	_, err = Parse("/* this is a \ncomment")
+	_, err = parse("/* this is a \ncomment")
 	assertError(t, "unterminated-block-multiline", err, "unterminated_comment")
 
-	_, err = Parse("/ ttt")
+	_, err = parse("/ ttt")
 	assertError(t, "invalid-comment", err, "unexpected")
 }
 
 func TestStrings(t *testing.T) {
-	r, err := Parse(`"test"`)
+	r, err := parse(`"test"`)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert(t, "simple", r, "test")
 
-	r, _ = Parse(`"\""`)
+	r, _ = parse(`"\""`)
 	assert(t, "escape-quote", r, `"`)
 
-	r, _ = Parse(`"\/"`)
+	r, _ = parse(`"\/"`)
 	assert(t, "escape-slash", r, "/")
 
-	r, _ = Parse(`"\b"`)
+	r, _ = parse(`"\b"`)
 	assert(t, "escape-backspace", r, "\b")
 
-	r, _ = Parse(`"\f"`)
+	r, _ = parse(`"\f"`)
 	assert(t, "escape-formfeed", r, "\f")
 
-	r, _ = Parse(`"\n"`)
+	r, _ = parse(`"\n"`)
 	assert(t, "escape-newline", r, "\n")
 
-	r, _ = Parse(`"\r"`)
+	r, _ = parse(`"\r"`)
 	assert(t, "escape-return", r, "\r")
 
-	r, _ = Parse(`"\t"`)
+	r, _ = parse(`"\t"`)
 	assert(t, "escape-tab", r, "\t")
 
-	r, _ = Parse(`"\u00DC"`)
+	r, _ = parse(`"\u00DC"`)
 	assert(t, "unicode", r, "\u00DC")
 
 	// Note: \v is accepted by the jsonic Go string matcher as a built-in escape.
 	// This is a minor deviation from strict JSONC spec which only allows
 	// \", \\, \/, \b, \f, \n, \r, \t, and \uXXXX.
 
-	_, err = Parse(`"test`)
+	_, err = parse(`"test`)
 	assertError(t, "unterminated", err, "unterminated_string")
 }
 
 func TestNumbers(t *testing.T) {
-	r, _ := Parse("0")
+	r, _ := parse("0")
 	assert(t, "zero", r, float64(0))
 
-	r, _ = Parse("0.1")
+	r, _ = parse("0.1")
 	assert(t, "decimal", r, 0.1)
 
-	r, _ = Parse("-0.1")
+	r, _ = parse("-0.1")
 	assert(t, "neg-decimal", r, -0.1)
 
-	r, _ = Parse("-1")
+	r, _ = parse("-1")
 	assert(t, "neg", r, float64(-1))
 
-	r, _ = Parse("1")
+	r, _ = parse("1")
 	assert(t, "one", r, float64(1))
 
-	r, _ = Parse("123456789")
+	r, _ = parse("123456789")
 	assert(t, "large", r, float64(123456789))
 
-	r, _ = Parse("10")
+	r, _ = parse("10")
 	assert(t, "ten", r, float64(10))
 
-	r, _ = Parse("90")
+	r, _ = parse("90")
 	assert(t, "ninety", r, float64(90))
 
-	r, _ = Parse("90E+123")
+	r, _ = parse("90E+123")
 	assert(t, "sci-upper-plus", r, 90E+123)
 
-	r, _ = Parse("90e+123")
+	r, _ = parse("90e+123")
 	assert(t, "sci-lower-plus", r, 90e+123)
 
-	r, _ = Parse("90e-123")
+	r, _ = parse("90e-123")
 	assert(t, "sci-lower-minus", r, 90e-123)
 
-	r, _ = Parse("90E-123")
+	r, _ = parse("90E-123")
 	assert(t, "sci-upper-minus", r, 90E-123)
 
-	r, _ = Parse("90E123")
+	r, _ = parse("90E123")
 	assert(t, "sci-upper", r, 90E123)
 
-	r, _ = Parse("90e123")
+	r, _ = parse("90e123")
 	assert(t, "sci-lower", r, 90e123)
 
-	_, err := Parse("-")
+	_, err := parse("-")
 	if err == nil {
 		t.Error("expected error for bare minus")
 	}
 
-	_, err = Parse(".0")
+	_, err = parse(".0")
 	if err == nil {
 		t.Error("expected error for leading dot number")
 	}
 }
 
 func TestKeywords(t *testing.T) {
-	r, _ := Parse("true")
+	r, _ := parse("true")
 	assert(t, "true", r, true)
 
-	r, _ = Parse("false")
+	r, _ = parse("false")
 	assert(t, "false", r, false)
 
-	r, _ = Parse("null")
+	r, _ = parse("null")
 	assert(t, "null", r, nil)
 
-	_, err := Parse("True")
+	_, err := parse("True")
 	if err == nil {
 		t.Error("expected error for capitalized True")
 	}
 
-	r, _ = Parse("false//hello")
+	r, _ = parse("false//hello")
 	assert(t, "value-with-comment", r, false)
 }
 
 func TestTrivia(t *testing.T) {
-	r, _ := Parse(" ")
+	r, _ := parse(" ")
 	assert(t, "space", r, nil)
 
-	r, _ = Parse("  \t  ")
+	r, _ = parse("  \t  ")
 	assert(t, "tabs", r, nil)
 
-	r, _ = Parse("  \t  \n  \t  ")
+	r, _ = parse("  \t  \n  \t  ")
 	assert(t, "tabs-newlines", r, nil)
 
-	r, _ = Parse("\r\n")
+	r, _ = parse("\r\n")
 	assert(t, "crlf", r, nil)
 
-	r, _ = Parse("\r")
+	r, _ = parse("\r")
 	assert(t, "cr", r, nil)
 
-	r, _ = Parse("\n")
+	r, _ = parse("\n")
 	assert(t, "lf", r, nil)
 
-	r, _ = Parse("\n\r")
+	r, _ = parse("\n\r")
 	assert(t, "lfcr", r, nil)
 
-	r, _ = Parse("\n   \n")
+	r, _ = parse("\n   \n")
 	assert(t, "newlines-spaces", r, nil)
 }
 
 func TestLiterals(t *testing.T) {
-	r, _ := Parse("true")
+	r, _ := parse("true")
 	assert(t, "true", r, true)
 
-	r, _ = Parse("false")
+	r, _ = parse("false")
 	assert(t, "false", r, false)
 
-	r, _ = Parse("null")
+	r, _ = parse("null")
 	assert(t, "null", r, nil)
 
-	r, _ = Parse(`"foo"`)
+	r, _ = parse(`"foo"`)
 	assert(t, "string", r, "foo")
 
-	r, _ = Parse(`"\"-\\-\/-\b-\f-\n-\r-\t"`)
+	r, _ = parse(`"\"-\\-\/-\b-\f-\n-\r-\t"`)
 	assert(t, "escapes", r, "\"-\\-/-\b-\f-\n-\r-\t")
 
-	r, _ = Parse(`"\u00DC"`)
+	r, _ = parse(`"\u00DC"`)
 	assert(t, "unicode", r, "\u00DC")
 
-	r, _ = Parse("9")
+	r, _ = parse("9")
 	assert(t, "nine", r, float64(9))
 
-	r, _ = Parse("-9")
+	r, _ = parse("-9")
 	assert(t, "neg-nine", r, float64(-9))
 
-	r, _ = Parse("0.129")
+	r, _ = parse("0.129")
 	assert(t, "decimal", r, 0.129)
 
-	r, _ = Parse("23e3")
+	r, _ = parse("23e3")
 	assert(t, "sci", r, 23e3)
 
-	r, _ = Parse("1.2E+3")
+	r, _ = parse("1.2E+3")
 	assert(t, "sci-plus", r, 1.2E+3)
 
-	r, _ = Parse("1.2E-3")
+	r, _ = parse("1.2E-3")
 	assert(t, "sci-minus", r, 1.2E-3)
 
-	r, _ = Parse("1.2E-3 // comment")
+	r, _ = parse("1.2E-3 // comment")
 	assert(t, "num-comment", r, 1.2E-3)
 }
 
 func TestObjects(t *testing.T) {
-	r, _ := Parse("{}")
+	r, _ := parse("{}")
 	assert(t, "empty", r, map[string]any{})
 
-	r, _ = Parse(`{ "foo": true }`)
+	r, _ = parse(`{ "foo": true }`)
 	assert(t, "one-field", r, map[string]any{"foo": true})
 
-	r, _ = Parse(`{ "bar": 8, "xoo": "foo" }`)
+	r, _ = parse(`{ "bar": 8, "xoo": "foo" }`)
 	assert(t, "two-fields", r, map[string]any{"bar": float64(8), "xoo": "foo"})
 
-	r, _ = Parse(`{ "hello": [], "world": {} }`)
+	r, _ = parse(`{ "hello": [], "world": {} }`)
 	assert(t, "empty-nested", r, map[string]any{"hello": []any{}, "world": map[string]any{}})
 
-	r, _ = Parse(`{ "a": false, "b": true, "c": [ 7.4 ] }`)
+	r, _ = parse(`{ "a": false, "b": true, "c": [ 7.4 ] }`)
 	assert(t, "mixed", r, map[string]any{"a": false, "b": true, "c": []any{7.4}})
 
-	r, _ = Parse(`{ "hello": { "again": { "inside": 5 }, "world": 1 }}`)
+	r, _ = parse(`{ "hello": { "again": { "inside": 5 }, "world": 1 }}`)
 	assert(t, "deep-nested", r, map[string]any{
 		"hello": map[string]any{
 			"again": map[string]any{"inside": float64(5)},
@@ -281,95 +294,95 @@ func TestObjects(t *testing.T) {
 		},
 	})
 
-	r, _ = Parse(`{ "foo": /*hello*/true }`)
+	r, _ = parse(`{ "foo": /*hello*/true }`)
 	assert(t, "comment-in-obj", r, map[string]any{"foo": true})
 
-	r, _ = Parse(`{ "": true }`)
+	r, _ = parse(`{ "": true }`)
 	assert(t, "empty-key", r, map[string]any{"": true})
 }
 
 func TestArrays(t *testing.T) {
-	r, _ := Parse("[]")
+	r, _ := parse("[]")
 	assert(t, "empty", r, []any{})
 
-	r, _ = Parse("[ [],  [ [] ]]")
+	r, _ = parse("[ [],  [ [] ]]")
 	assert(t, "nested-empty", r, []any{[]any{}, []any{[]any{}}})
 
-	r, _ = Parse("[ 1, 2, 3 ]")
+	r, _ = parse("[ 1, 2, 3 ]")
 	assert(t, "numbers", r, []any{float64(1), float64(2), float64(3)})
 
-	r, _ = Parse(`[ { "a": null } ]`)
+	r, _ = parse(`[ { "a": null } ]`)
 	assert(t, "obj-in-array", r, []any{map[string]any{"a": nil}})
 }
 
 func TestObjectErrors(t *testing.T) {
-	_, err := Parse("{,}")
+	_, err := parse("{,}")
 	if err == nil {
 		t.Error("expected error for leading comma in object")
 	}
 
-	_, err = Parse(`{ "foo": true, }`)
+	_, err = parse(`{ "foo": true, }`)
 	if err == nil {
 		t.Error("expected error for trailing comma in object (default)")
 	}
 
-	_, err = Parse(`{ "bar": 8 "xoo": "foo" }`)
+	_, err = parse(`{ "bar": 8 "xoo": "foo" }`)
 	if err == nil {
 		t.Error("expected error for missing comma in object")
 	}
 
-	_, err = Parse(`{ ,"bar": 8 }`)
+	_, err = parse(`{ ,"bar": 8 }`)
 	if err == nil {
 		t.Error("expected error for leading comma")
 	}
 
-	_, err = Parse(`{ "bar": 8, "foo": }`)
+	_, err = parse(`{ "bar": 8, "foo": }`)
 	if err == nil {
 		t.Error("expected error for missing value")
 	}
 
-	_, err = Parse(`{ 8, "foo": 9 }`)
+	_, err = parse(`{ 8, "foo": 9 }`)
 	if err == nil {
 		t.Error("expected error for number as key")
 	}
 }
 
 func TestArrayErrors(t *testing.T) {
-	_, err := Parse("[,]")
+	_, err := parse("[,]")
 	if err == nil {
 		t.Error("expected error for leading comma in array")
 	}
 
-	_, err = Parse("[ 1 2, 3 ]")
+	_, err = parse("[ 1 2, 3 ]")
 	if err == nil {
 		t.Error("expected error for missing comma in array")
 	}
 
-	_, err = Parse("[ ,1, 2, 3 ]")
+	_, err = parse("[ ,1, 2, 3 ]")
 	if err == nil {
 		t.Error("expected error for leading comma in array")
 	}
 
-	_, err = Parse("[ ,1, 2, 3, ]")
+	_, err = parse("[ ,1, 2, 3, ]")
 	if err == nil {
 		t.Error("expected error for commas in array")
 	}
 }
 
 func TestErrors(t *testing.T) {
-	_, err := Parse("1,1")
+	_, err := parse("1,1")
 	if err == nil {
 		t.Error("expected error for extra content after value")
 	}
 
-	_, err = Parse("")
+	_, err = parse("")
 	if err == nil {
 		t.Error("expected error for empty input")
 	}
 }
 
 func TestDisallowComments(t *testing.T) {
-	nc := MakeJsonic(JsoncOptions{DisallowComments: boolPtr(true)})
+	nc := makeJsonc(map[string]any{"disallowComments": true})
 
 	r, err := nc.Parse(`[ 1, 2, null, "foo" ]`)
 	if err != nil {
@@ -390,7 +403,7 @@ func TestDisallowComments(t *testing.T) {
 }
 
 func TestTrailingComma(t *testing.T) {
-	jc := MakeJsonic(JsoncOptions{AllowTrailingComma: boolPtr(true)})
+	jc := makeJsonc(map[string]any{"allowTrailingComma": true})
 
 	r, err := jc.Parse(`{ "hello": [], }`)
 	if err != nil {
@@ -423,8 +436,6 @@ func TestTrailingComma(t *testing.T) {
 	assert(t, "arr-no-trailing", r, []any{float64(1), float64(2)})
 
 	// Default parser should reject trailing commas.
-	j := MakeJsonic()
-
 	_, err = j.Parse(`{ "hello": [], }`)
 	if err == nil {
 		t.Error("expected error for trailing comma with default options")
@@ -437,8 +448,6 @@ func TestTrailingComma(t *testing.T) {
 }
 
 func TestMisc(t *testing.T) {
-	j := MakeJsonic()
-
 	r, _ := j.Parse(`{ "foo": "bar" }`)
 	assert(t, "simple-obj", r, map[string]any{"foo": "bar"})
 
@@ -552,7 +561,7 @@ func TestMisc(t *testing.T) {
 }
 
 func TestUsePlugin(t *testing.T) {
-	j := MakeJsonic()
+	j := makeJsonc()
 	result, err := j.Parse(`{"a": 1, "b": "hello"}`)
 	if err != nil {
 		t.Fatal(err)
