@@ -15,11 +15,12 @@ const grammarText = `
 # Extends standard JSON grammar with end-of-input value handling.
 # Trailing commas are added programmatically via rule modification.
 #
-# Note: number.exclude uses a regex and must be set in code.
+# Function references (@ prefixed) are resolved against the refs map:
+#   @exclude-leading-dot  - rejects numbers starting with '.'
 
 {
   options: text: { lex: false }
-  options: number: { hex: false oct: false bin: false sep: null }
+  options: number: { hex: false oct: false bin: false sep: null exclude: '@exclude-leading-dot' }
   options: string: { chars: '"' multiChars: '' allowUnknown: false }
   options: string: escape: { v: null }
   options: map: { extend: false }
@@ -42,7 +43,8 @@ function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
   const grammar = Jsonic.make()(grammarText)
   jsonic.grammar(grammar)
 
-  // Runtime options that depend on plugin arguments or need JS types.
+  // Runtime options that depend on plugin arguments, and
+  // number.exclude which requires JS funcref resolution.
   jsonic.options({
     comment: {
       lex: true !== options.disallowComments,

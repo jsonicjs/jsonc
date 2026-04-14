@@ -46,9 +46,6 @@ func MakeJsonic(opts ...JsoncOptions) *jsonic.Jsonic {
 			Hex: boolPtr(false),
 			Oct: boolPtr(false),
 			Bin: boolPtr(false),
-			Exclude: func(s string) bool {
-				return len(s) > 0 && s[0] == '.'
-			},
 		},
 		String: &jsonic.StringOptions{
 			Chars:        `"`,
@@ -84,11 +81,12 @@ const grammarText = `
 # Extends standard JSON grammar with end-of-input value handling.
 # Trailing commas are added programmatically via rule modification.
 #
-# Note: number.exclude uses a regex and must be set in code.
+# Function references (@ prefixed) are resolved against the refs map:
+#   @exclude-leading-dot  - rejects numbers starting with '.'
 
 {
   options: text: { lex: false }
-  options: number: { hex: false oct: false bin: false sep: null }
+  options: number: { hex: false oct: false bin: false sep: null exclude: '@exclude-leading-dot' }
   options: string: { chars: '"' multiChars: '' allowUnknown: false }
   options: string: escape: { v: null }
   options: map: { extend: false }
@@ -109,8 +107,46 @@ const grammarText = `
 func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	allowTrailingComma, _ := pluginOpts["allowTrailingComma"].(bool)
 
+	// Apply grammar: static options (via OptionsMap with funcref resolution)
+	// and the val ZZ rule alt.
+	parser := jsonic.Make()
+	parsed, err := parser.Parse(grammarText)
+	if err != nil {
+		panic("failed to parse jsonc grammar: " + err.Error())
+	}
+	pm := parsed.(map[string]any)
+	optsMap, _ := pm["options"].(map[string]any)
+	gs := &jsonic.GrammarSpec{
+		Ref: map[jsonic.FuncRef]any{
+			"@exclude-leading-dot": func(s string) bool {
+				return len(s) > 0 && s[0] == '.'
+			},
+		},
+		OptionsMap: optsMap,
+	}
+	ruleMap, _ := pm["rule"].(map[string]any)
+	if ruleMap != nil {
+		gs.Rule = make(map[string]*jsonic.GrammarRuleSpec, len(ruleMap))
+		for name, rDef := range ruleMap {
+			rd, ok := rDef.(map[string]any)
+			if !ok {
+				continue
+			}
+			grs := &jsonic.GrammarRuleSpec{}
+			if openDef, ok := rd["open"]; ok {
+				grs.Open = convertAlts(openDef)
+			}
+			if closeDef, ok := rd["close"]; ok {
+				grs.Close = convertAlts(closeDef)
+			}
+			gs.Rule[name] = grs
+		}
+	}
+	if err := j.Grammar(gs); err != nil {
+		panic("failed to apply jsonc grammar: " + err.Error())
+	}
+
 	VL := j.Token("#VL")
-	ZZ := j.Token("#ZZ")
 
 	// Custom value keyword matcher: handles true, false, null.
 	// Needed because text lexing is disabled for JSONC compliance
@@ -181,14 +217,6 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 		})
 	}
 
-	// Add ZZ alt to val rule for empty/comment-only input.
-	// Done programmatically to avoid Grammar() interfering with existing rules.
-	j.Rule("val", func(rs *jsonic.RuleSpec) {
-		rs.AddOpen(&jsonic.AltSpec{
-			S: [][]jsonic.Tin{{ZZ}},
-			G: "jsonc",
-		})
-	})
 }
 
 // ---- Options helpers ----
@@ -212,35 +240,6 @@ func boolPtr(b bool) *bool {
 }
 
 // ---- Grammar helpers (shared pattern with ini/csv) ----
-
-func mapToGrammarSpec(parsed map[string]any, ref map[jsonic.FuncRef]any) *jsonic.GrammarSpec {
-	gs := &jsonic.GrammarSpec{
-		Ref: ref,
-	}
-
-	ruleMap, _ := parsed["rule"].(map[string]any)
-	if ruleMap == nil {
-		return gs
-	}
-
-	gs.Rule = make(map[string]*jsonic.GrammarRuleSpec, len(ruleMap))
-	for name, rDef := range ruleMap {
-		rd, ok := rDef.(map[string]any)
-		if !ok {
-			continue
-		}
-		grs := &jsonic.GrammarRuleSpec{}
-		if openDef, ok := rd["open"]; ok {
-			grs.Open = convertAlts(openDef)
-		}
-		if closeDef, ok := rd["close"]; ok {
-			grs.Close = convertAlts(closeDef)
-		}
-		gs.Rule[name] = grs
-	}
-
-	return gs
-}
 
 func convertAlts(def any) any {
 	switch v := def.(type) {
