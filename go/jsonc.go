@@ -3,6 +3,8 @@
 package jsonc
 
 import (
+	"regexp"
+
 	jsonic "github.com/jsonicjs/jsonic/go"
 )
 
@@ -118,9 +120,7 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	optsMap, _ := pm["options"].(map[string]any)
 	gs := &jsonic.GrammarSpec{
 		Ref: map[jsonic.FuncRef]any{
-			"@exclude-leading-dot": func(s string) bool {
-				return len(s) > 0 && s[0] == '.'
-			},
+			"@exclude-leading-dot": regexp.MustCompile(`^\.`).MatchString,
 		},
 		OptionsMap: optsMap,
 	}
