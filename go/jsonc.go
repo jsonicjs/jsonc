@@ -11,7 +11,6 @@ const grammarText = `
 # JSONC Grammar Definition
 # Parsed by a standard Jsonic instance and passed to jsonic.grammar()
 # Extends standard JSON grammar with end-of-input value handling.
-# Trailing commas are added programmatically via rule modification.
 
 {
   options: text: { lex: false }
@@ -28,22 +27,35 @@ const grammarText = `
     ]
     inject: { append: true }
   }
+
+  rule: pair: close: {
+    alts: [
+      { s: '#CA #CB' b: 1 g: comma }
+    ]
+    inject: {}
+  }
+
+  rule: elem: close: {
+    alts: [
+      { s: '#CA #CS' b: 1 g: comma }
+    ]
+    inject: {}
+  }
 }
 `
-
 // --- END EMBEDDED jsonc-grammar.jsonic ---
 
-// Jsonc is the jsonic plugin that configures JSONC parsing.
-func Jsonc(j *jsonic.Jsonic, pluginOpts map[string]any) {
+// Jsonc configures a jsonic instance for JSONC parsing.
+func Jsonc(j *jsonic.Jsonic, pluginOpts map[string]any) error {
 	commentLex := true != toBool(pluginOpts["disallowComments"])
 	ruleExclude := "jsonic,imp,comma"
 	if toBool(pluginOpts["allowTrailingComma"]) {
 		ruleExclude = "jsonic,imp"
 	}
 
-	// Apply grammar: static options and val ZZ rule alt.
+	// Apply grammar: static options, rules, and trailing comma alts.
 	if err := j.GrammarText(grammarText); err != nil {
-		panic("failed to apply jsonc grammar: " + err.Error())
+		return err
 	}
 
 	// Runtime options that depend on plugin arguments.
@@ -52,16 +64,7 @@ func Jsonc(j *jsonic.Jsonic, pluginOpts map[string]any) {
 		Rule:    &jsonic.RuleOptions{Exclude: ruleExclude},
 	})
 
-	// Trailing comma support (Go jsonic has no built-in "comma" group alts).
-	if toBool(pluginOpts["allowTrailingComma"]) {
-		CA, CB, CS := j.Token("#CA"), j.Token("#CB"), j.Token("#CS")
-		j.Rule("pair", func(rs *jsonic.RuleSpec) {
-			rs.PrependClose(&jsonic.AltSpec{S: [][]jsonic.Tin{{CA}, {CB}}, B: 1})
-		})
-		j.Rule("elem", func(rs *jsonic.RuleSpec) {
-			rs.PrependClose(&jsonic.AltSpec{S: [][]jsonic.Tin{{CA}, {CS}}, B: 1})
-		})
-	}
+	return nil
 }
 
 func toBool(v any) bool {

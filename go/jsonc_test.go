@@ -12,10 +12,12 @@ import (
 
 func makeJsonc(opts ...map[string]any) *jsonic.Jsonic {
 	j := jsonic.Make()
+	var o map[string]any
 	if len(opts) > 0 {
-		j.Use(Jsonc, opts[0])
-	} else {
-		j.Use(Jsonc)
+		o = opts[0]
+	}
+	if err := Jsonc(j, o); err != nil {
+		panic(err)
 	}
 	return j
 }

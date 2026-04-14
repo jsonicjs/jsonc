@@ -13,7 +13,6 @@ const grammarText = `
 # JSONC Grammar Definition
 # Parsed by a standard Jsonic instance and passed to jsonic.grammar()
 # Extends standard JSON grammar with end-of-input value handling.
-# Trailing commas are added programmatically via rule modification.
 
 {
   options: text: { lex: false }
@@ -29,6 +28,20 @@ const grammarText = `
       { s: '#ZZ' g: jsonc }
     ]
     inject: { append: true }
+  }
+
+  rule: pair: close: {
+    alts: [
+      { s: '#CA #CB' b: 1 g: comma }
+    ]
+    inject: {}
+  }
+
+  rule: elem: close: {
+    alts: [
+      { s: '#CA #CS' b: 1 g: comma }
+    ]
+    inject: {}
   }
 }
 `
