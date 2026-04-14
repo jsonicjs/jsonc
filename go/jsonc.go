@@ -8,23 +8,17 @@ import (
 
 // JsoncOptions configures the JSONC parser.
 type JsoncOptions struct {
-	// AllowTrailingComma enables trailing commas in objects and arrays.
-	// Default: false (standard JSONC behavior; set true for VS Code compatibility).
 	AllowTrailingComma *bool
-	// DisallowComments disables comment parsing.
-	// Default: false (comments are enabled by default in JSONC).
-	DisallowComments *bool
+	DisallowComments   *bool
 }
 
 // Parse parses a JSONC string and returns the result.
-// Returns the parsed value (map, slice, string, float64, bool, or nil) and any error.
 func Parse(src string, opts ...JsoncOptions) (any, error) {
 	var o JsoncOptions
 	if len(opts) > 0 {
 		o = opts[0]
 	}
-	j := MakeJsonic(o)
-	return j.Parse(src)
+	return MakeJsonic(o).Parse(src)
 }
 
 // MakeJsonic creates a jsonic instance configured for JSONC parsing.
@@ -34,12 +28,11 @@ func MakeJsonic(opts ...JsoncOptions) *jsonic.Jsonic {
 		o = opts[0]
 	}
 
-	j := jsonic.Make(jsonic.Options{
-		Lex: &jsonic.LexOptions{Empty: boolPtr(false)},
+	j := jsonic.Make()
+	j.Use(Jsonc, map[string]any{
+		"allowTrailingComma": boolOpt(o.AllowTrailingComma, false),
+		"disallowComments":   boolOpt(o.DisallowComments, false),
 	})
-
-	j.Use(jsoncPlugin, optionsToMap(&o))
-
 	return j
 }
 
@@ -67,26 +60,30 @@ const grammarText = `
   }
 }
 `
+
 // --- END EMBEDDED jsonc-grammar.jsonic ---
 
-// jsoncPlugin is the jsonic plugin that configures JSONC parsing.
-func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
-	allowTrailingComma, _ := pluginOpts["allowTrailingComma"].(bool)
-	disallowComments, _ := pluginOpts["disallowComments"].(bool)
+// Jsonc is the jsonic plugin that configures JSONC parsing.
+func Jsonc(j *jsonic.Jsonic, pluginOpts map[string]any) {
+	commentLex := true != toBool(pluginOpts["disallowComments"])
+	ruleExclude := "jsonic,imp,comma"
+	if toBool(pluginOpts["allowTrailingComma"]) {
+		ruleExclude = "jsonic,imp"
+	}
 
-	// Apply grammar: options and val ZZ rule from text.
+	// Apply grammar: static options and val ZZ rule alt.
 	if err := j.GrammarText(grammarText); err != nil {
 		panic("failed to apply jsonc grammar: " + err.Error())
 	}
 
 	// Runtime options that depend on plugin arguments.
 	j.SetOptions(jsonic.Options{
-		Comment: &jsonic.CommentOptions{Lex: boolPtr(!disallowComments)},
-		Rule:    &jsonic.RuleOptions{Exclude: "jsonic,imp"},
+		Comment: &jsonic.CommentOptions{Lex: &commentLex},
+		Rule:    &jsonic.RuleOptions{Exclude: ruleExclude},
 	})
 
-	// Trailing comma support.
-	if allowTrailingComma {
+	// Trailing comma support (Go jsonic has no built-in "comma" group alts).
+	if toBool(pluginOpts["allowTrailingComma"]) {
 		CA, CB, CS := j.Token("#CA"), j.Token("#CB"), j.Token("#CS")
 		j.Rule("pair", func(rs *jsonic.RuleSpec) {
 			rs.PrependClose(&jsonic.AltSpec{S: [][]jsonic.Tin{{CA}, {CB}}, B: 1})
@@ -97,11 +94,9 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	}
 }
 
-func optionsToMap(o *JsoncOptions) map[string]any {
-	return map[string]any{
-		"allowTrailingComma": boolOpt(o.AllowTrailingComma, false),
-		"disallowComments":   boolOpt(o.DisallowComments, false),
-	}
+func toBool(v any) bool {
+	b, _ := v.(bool)
+	return b
 }
 
 func boolOpt(p *bool, def bool) bool {
@@ -109,8 +104,4 @@ func boolOpt(p *bool, def bool) bool {
 		return *p
 	}
 	return def
-}
-
-func boolPtr(b bool) *bool {
-	return &b
 }

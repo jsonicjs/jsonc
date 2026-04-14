@@ -8,6 +8,8 @@ import (
 	"testing"
 )
 
+func boolPtr(b bool) *bool { return &b }
+
 // assert is a test helper that checks deep equality.
 func assert(t *testing.T, name string, got, want any) {
 	t.Helper()
