@@ -102,45 +102,11 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 		},
 	})
 
-	// Runtime options not expressible in static grammar.
+	// Runtime options and options not handled by MapToOptions (text, lex).
 	j.SetOptions(jsonic.Options{
 		Text:    &jsonic.TextOptions{Lex: boolPtr(false)},
 		Comment: &jsonic.CommentOptions{Lex: boolPtr(!disallowComments)},
-	})
-	j.Exclude("jsonic", "imp")
-
-	// Custom value keyword matcher: handles true, false, null.
-	// Needed because text lexing is disabled for JSONC compliance
-	// (no bare text values), but value keywords must still work.
-	VL := j.Token("#VL")
-	j.AddMatcher("jsonc-value", 100000, func(lex *jsonic.Lex, rule *jsonic.Rule) *jsonic.Token {
-		pnt := lex.Cursor()
-		src := lex.Src
-		sI := pnt.SI
-		if sI >= pnt.Len {
-			return nil
-		}
-		for _, k := range []struct {
-			text string
-			val  any
-		}{{"false", false}, {"true", true}, {"null", nil}} {
-			end := sI + len(k.text)
-			if end > pnt.Len || src[sI:end] != k.text {
-				continue
-			}
-			if end < pnt.Len {
-				ch := src[end]
-				if (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-					(ch >= '0' && ch <= '9') || ch == '_' || ch == '$' {
-					continue
-				}
-			}
-			tkn := lex.Token("#VL", VL, k.val, k.text)
-			pnt.SI = end
-			pnt.CI += len(k.text)
-			return tkn
-		}
-		return nil
+		Rule:    &jsonic.RuleOptions{Exclude: "jsonic,imp"},
 	})
 
 	// Trailing comma support.
