@@ -39,29 +39,15 @@ func MakeJsonic(opts ...JsoncOptions) *jsonic.Jsonic {
 	disallowComments := boolOpt(o.DisallowComments, false)
 	commentLex := !disallowComments
 
+	// Options not handled by MapToOptions (text, lex) must be set here.
+	// Options handled by MapToOptions (number, string, comment, map, value,
+	// rule) are applied from the grammar via Grammar() in the plugin.
 	jopts := jsonic.Options{
 		Text: &jsonic.TextOptions{
 			Lex: boolPtr(false),
 		},
-		Number: &jsonic.NumberOptions{
-			Lex: boolPtr(true),
-			Hex: boolPtr(false),
-			Oct: boolPtr(false),
-			Bin: boolPtr(false),
-		},
-		String: &jsonic.StringOptions{
-			Chars:        `"`,
-			AllowUnknown: boolPtr(false),
-		},
 		Comment: &jsonic.CommentOptions{
 			Lex: &commentLex,
-		},
-		Map: &jsonic.MapOptions{
-			Extend: boolPtr(false),
-		},
-		Rule: &jsonic.RuleOptions{
-			Finish:  boolPtr(false),
-			Exclude: "jsonic,imp",
 		},
 		Lex: &jsonic.LexOptions{
 			Empty: boolPtr(false),
@@ -145,6 +131,9 @@ func jsoncPlugin(j *jsonic.Jsonic, pluginOpts map[string]any) {
 	if err := j.Grammar(gs); err != nil {
 		panic("failed to apply jsonc grammar: " + err.Error())
 	}
+
+	// Exclude must be called after Grammar (which may reset rule options).
+	j.Exclude("jsonic", "imp")
 
 	VL := j.Token("#VL")
 
