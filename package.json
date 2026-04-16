@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "jsonic": ">=2.22.2",
+    "jsonic": "^2.24.0",
     "typescript": "^5.6.3"
   },
   "files": [
