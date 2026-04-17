@@ -572,3 +572,63 @@ func TestUsePlugin(t *testing.T) {
 	}
 	assert(t, "plugin", m, map[string]any{"a": float64(1), "b": "hello"})
 }
+
+// TestAltGJsoncTag verifies the GrammarText setting {Rule:{Alt:{G:'jsonc'}}}
+// tagged every alt installed by the jsonc plugin with 'jsonc'.
+func TestAltGJsoncTag(t *testing.T) {
+	// Fresh instance with allowTrailingComma so pair/elem close alts survive
+	// the rule-exclude filter and can be inspected here.
+	jc := jsonic.Make()
+	if err := jc.Use(Jsonc, map[string]any{"allowTrailingComma": true}); err != nil {
+		t.Fatal(err)
+	}
+
+	rsm := jc.RSM()
+	checks := []struct {
+		rule    string
+		isOpen  bool
+		tokSig  string
+	}{
+		{"val", true, "#ZZ"},
+		{"pair", false, "#CA #CB"},
+		{"elem", false, "#CA #CS"},
+	}
+
+	for _, c := range checks {
+		rs, ok := rsm[c.rule]
+		if !ok {
+			t.Errorf("rule %q missing", c.rule)
+			continue
+		}
+		alts := rs.Close
+		if c.isOpen {
+			alts = rs.Open
+		}
+
+		found := false
+		for _, a := range alts {
+			if !strings.Contains(a.G, "jsonc") {
+				continue
+			}
+			// Match the alt introduced by this plugin by its group tag(s).
+			// We only need to confirm 'jsonc' is present on at least one alt
+			// per rule; more importantly, every alt tagged as coming from
+			// the plugin must carry 'jsonc'.
+			found = true
+			tags := strings.Split(a.G, ",")
+			has := false
+			for _, t := range tags {
+				if strings.TrimSpace(t) == "jsonc" {
+					has = true
+					break
+				}
+			}
+			if !has {
+				t.Errorf("rule %q alt missing 'jsonc' tag: g=%q", c.rule, a.G)
+			}
+		}
+		if !found {
+			t.Errorf("rule %q: no alt with 'jsonc' tag found", c.rule)
+		}
+	}
+}

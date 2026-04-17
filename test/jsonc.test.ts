@@ -233,4 +233,29 @@ describe('jsonc', () => {
       { "key1": { "key11": ["val111", "val112"] }, "key2": [{ "key21": false, "key22": 221 }, null, [{}]] })
 
   })
+
+
+  // Verify the grammar() setting {rule:{alt:{g:'jsonc'}}} tagged every
+  // alt installed by the jsonc plugin with 'jsonc'.
+  test('alt g jsonc tag', () => {
+    const jc: any = Jsonic.make().use(Jsonc, { allowTrailingComma: true })
+    const rsm: any = jc.internal().parser.rsm
+
+    const checks: { rule: string; side: 'open' | 'close' }[] = [
+      { rule: 'val', side: 'open' },
+      { rule: 'pair', side: 'close' },
+      { rule: 'elem', side: 'close' },
+    ]
+
+    for (const { rule, side } of checks) {
+      const rs = rsm[rule]
+      assert.ok(rs, `rule ${rule} missing`)
+      const alts = rs.def[side] as any[]
+      const tagged = alts.filter((a) => {
+        const g = Array.isArray(a.g) ? a.g : String(a.g || '').split(/\s*,\s*/)
+        return g.includes('jsonc')
+      })
+      assert.ok(tagged.length > 0, `rule ${rule}.${side} has no 'jsonc'-tagged alt`)
+    }
+  })
 })

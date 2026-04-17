@@ -49,10 +49,10 @@ const grammarText = `
 
 function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
   const comment_lex = true !== options.disallowComments
-  const rule_include = 'jsonc,json' + (options.allowTrailingComma ? ',comma' : '')
-  
+  const rule_exclude = options.allowTrailingComma ? '' : 'comma'
+
   // Apply grammar: static options and val ZZ rule alt.
-  jsonic.grammar(Jsonic.make()(grammarText))
+  jsonic.grammar(Jsonic.make()(grammarText), { rule: { alt: { g: 'jsonc' } } })
 
   // Runtime options that depend on plugin arguments.
   jsonic.options({
@@ -60,7 +60,8 @@ function Jsonc(jsonic: Jsonic, options: JsoncOptions) {
       lex: comment_lex,
     },
     rule: {
-      include: rule_include,
+      include: 'jsonc,json',
+      exclude: rule_exclude,
     },
   })
 }
