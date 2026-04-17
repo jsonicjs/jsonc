@@ -1,58 +1,38 @@
 {
   "name": "@jsonic/jsonc",
-  "version": "0.4.0",
-  "description": "This plugin allows the [Jsonic](https://jsonic.senecajs.org) JSON parser to support JSONC syntax.",
-  "main": "jsonc.js",
-  "type": "commonjs",
-  "browser": "jsonc.min.js",
-  "types": "jsonc.d.ts",
-  "homepage": "https://github.com/jsonicjs/jsonc",
-  "keywords": [
-    "pattern",
-    "matcher",
-    "object",
-    "property",
-    "json"
-  ],
+  "version": "0.5.0",
+  "description": "This plugin allows the Jsonic JSON parser to support JSONC syntax.",
   "author": "Richard Rodger (http://richardrodger.com)",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/jsonicjs/jsonc.git"
-  },
-  "scripts": {
-    "test": "jest --coverage",
-    "test-some": "jest -t",
-    "test-watch": "jest --coverage --watchAll",
-    "watch": "tsc -w -d",
-    "doc": "jsonic-doc",
-    "build": "tsc -d && cp jsonc.js jsonc.min.js && browserify -o jsonc.min.js -e jsonc.js -s @JsonicJsonc -im -i assert -p tinyify",
-    "prettier": "prettier --write --no-semi --single-quote *.ts test/*.js",
-    "clean": "rm -rf node_modules yarn.lock package-lock.json",
-    "reset": "npm run clean && npm i && npm run build && npm test",
-    "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
-    "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
-    "repo-publish-quick": "npm run prettier && npm run build && npm run test && npm run doc && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
-  },
   "license": "MIT",
-  "files": [
-    "*.ts",
-    "*.js",
-    "*.map",
-    "LICENSE"
+  "main": "dist/jsonc.js",
+  "types": "dist/jsonc.d.ts",
+  "homepage": "https://github.com/jsonicjs/jsonc",
+  "repository": "github:jsonicjs/jsonc",
+  "keywords": [
+    "jsonc",
+    "json",
+    "comments",
+    "parser",
+    "jsonic"
   ],
-  "devDependencies": {
-    "@jsonic/doc": "^0.0.9",
-    "@types/jest": "^30.0.0",
-    "browserify": "^17.0.1",
-    "jest": "^30.2.0",
-    "prettier": "^3.6.2",
-    "tinyify": "^4.0.0",
-    "typescript": "^5.9.3",
-    "es-jest": "^2.1.0",
-    "esbuild": "^0.25.11"
+  "scripts": {
+    "test": "node --enable-source-maps --experimental-strip-types --test test/jsonc.test.ts",
+    "build": "node embed-grammar.js && tsc -p src",
+    "watch": "tsc -p src --watch",
+    "embed": "node embed-grammar.js",
+    "reset": "rm -rf dist node_modules package-lock.json && npm install && npm run build"
   },
-  "dependencies": {},
   "peerDependencies": {
-    "jsonic": ">=2"
-  }
+    "jsonic": ">=2.22.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "jsonic": ">=2.22.2",
+    "typescript": "^5.6.3"
+  },
+  "files": [
+    "src",
+    "dist",
+    "LICENSE"
+  ]
 }
