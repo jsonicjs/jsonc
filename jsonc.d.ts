@@ -1,4 +1,4 @@
-import { Jsonic } from '@jsonic/jsonic-next';
+import { Jsonic } from 'jsonic';
 type JsoncOptions = {
     allowTrailingComma?: boolean;
     disallowComments?: boolean;
