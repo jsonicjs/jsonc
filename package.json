@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "jsonic": "file:../jsonic",
+    "jsonic": "github:jsonicjs/jsonic#main",
     "typescript": "^5.6.3"
   },
   "files": [
