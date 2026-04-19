@@ -16,7 +16,7 @@
     "jsonic"
   ],
   "scripts": {
-    "test": "node --enable-source-maps --experimental-strip-types --test test/jsonc.test.ts",
+    "test": "node --enable-source-maps --experimental-strip-types --test test/jsonc.test.ts test/jsontestsuite.test.ts",
     "build": "node embed-grammar.js && tsc -p src",
     "watch": "tsc -p src --watch",
     "embed": "node embed-grammar.js",
