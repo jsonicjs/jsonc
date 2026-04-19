@@ -16,7 +16,7 @@
     "jsonic"
   ],
   "scripts": {
-    "test": "node --enable-source-maps --experimental-strip-types --test test/jsonc.test.ts",
+    "test": "node --enable-source-maps --experimental-strip-types --test test/jsonc.test.ts test/jsontestsuite.test.ts",
     "build": "node embed-grammar.js && tsc -p src",
     "watch": "tsc -p src --watch",
     "embed": "node embed-grammar.js",
@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "jsonic": "file:../jsonic",
+    "jsonic": "github:jsonicjs/jsonic#main",
     "typescript": "^5.6.3"
   },
   "files": [
