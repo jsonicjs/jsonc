@@ -138,6 +138,18 @@ All other rules follow standard JSON:
 - Property names must be double-quoted strings
 
 
+## Acknowledgments
+
+Conformance testing uses third-party corpora under MIT License:
+
+- [nst/JSONTestSuite](https://github.com/nst/JSONTestSuite) by Nicolas
+  Seriot — vendored as a git submodule at `test/JSONTestSuite/`.
+- [microsoft/node-jsonc-parser](https://github.com/microsoft/node-jsonc-parser) —
+  parse-level test cases ported into `test/jsonc.test.ts`.
+
+See [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) for details.
+
+
 ## License
 
 MIT. Copyright (c) 2021-2025 Richard Rodger and contributors.
