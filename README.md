@@ -18,24 +18,26 @@ optionally enabled.
 | ---------------------------------------------------- | --------------------------------------------------------------------------------------- |
 
 
-## Features
+The documentation below is organized along the
+[Diátaxis](https://diataxis.fr) quadrants:
 
-- Single-line comments: `// comment`
-- Block comments: `/* comment */`
-- Optional trailing commas in objects and arrays
-- Strict JSON value parsing (no unquoted strings or hex numbers)
-- Available in both TypeScript/JavaScript and Go
+- [Quick start](#quick-start) — tutorial
+- [How-to guides](#how-to-guides) — task recipes
+- [Reference](#reference) — API surface
+- [JSONC format](#jsonc-format) — explanation
 
 
-## TypeScript
+## Quick start
 
-### Install
+### TypeScript
+
+Install:
 
 ```bash
 npm install @jsonic/jsonc @jsonic/jsonic-next
 ```
 
-### Quick Start
+Parse:
 
 ```typescript
 import { Jsonic } from '@jsonic/jsonic-next'
@@ -43,99 +45,185 @@ import { Jsonc } from '@jsonic/jsonc'
 
 const j = Jsonic.make().use(Jsonc)
 
-// Parse JSONC with comments
 const result = j('{ "name": "app", /* version */ "version": "1.0" }')
-// => { name: "app", version: "1.0" }
-
-// Enable trailing commas
-const jc = Jsonic.make().use(Jsonc, { allowTrailingComma: true })
-const config = jc('{ "debug": true, "verbose": false, }')
-// => { debug: true, verbose: false }
+// => { name: 'app', version: '1.0' }
 ```
 
-### Options
+### Go
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `allowTrailingComma` | `boolean` | `false` | Allow trailing commas in objects and arrays |
-| `disallowComments` | `boolean` | `false` | Disable comment parsing (strict JSON mode) |
-
-
-## Go
-
-### Install
+Install:
 
 ```bash
 go get github.com/jsonicjs/jsonc/go
 ```
 
-### Quick Start
+Parse:
 
 ```go
 package main
 
 import (
     "fmt"
+    jsonic "github.com/jsonicjs/jsonic/go"
     jsonc "github.com/jsonicjs/jsonc/go"
 )
 
 func main() {
-    // Parse JSONC with comments
-    result, err := jsonc.Parse(`{ "name": "app", /* version */ "version": "1.0" }`)
+    j := jsonic.Make()
+    j.Use(jsonc.Jsonc)
+
+    result, err := j.Parse(`{ "name": "app", /* version */ "version": "1.0" }`)
     if err != nil {
         panic(err)
     }
     fmt.Println(result)
     // => map[name:app version:1.0]
-
-    // Enable trailing commas
-    result, err = jsonc.Parse(
-        `{ "debug": true, "verbose": false, }`,
-        jsonc.JsoncOptions{AllowTrailingComma: boolPtr(true)},
-    )
-    fmt.Println(result)
-    // => map[debug:true verbose:false]
 }
-
-func boolPtr(b bool) *bool { return &b }
 ```
 
-### API
 
-#### `Parse(src string, opts ...JsoncOptions) (any, error)`
+## How-to guides
 
-Parse a JSONC string and return the result. Returns `map[string]any` for
-objects, `[]any` for arrays, `float64` for numbers, `string`, `bool`,
-or `nil`.
+### Allow trailing commas
 
-#### `MakeJsonic(opts ...JsoncOptions) *jsonic.Jsonic`
+TypeScript:
 
-Create a configured jsonic instance for JSONC parsing. Use this when you
-need to parse multiple inputs with the same configuration.
+```typescript
+const j = Jsonic.make().use(Jsonc, { allowTrailingComma: true })
+j('{ "debug": true, "verbose": false, }')
+// => { debug: true, verbose: false }
+```
 
-#### `JsoncOptions`
+Go:
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `AllowTrailingComma` | `*bool` | `false` | Allow trailing commas in objects and arrays |
-| `DisallowComments` | `*bool` | `false` | Disable comment parsing |
+```go
+j := jsonic.Make()
+j.Use(jsonc.Jsonc, map[string]any{"allowTrailingComma": true})
+result, _ := j.Parse(`{ "debug": true, "verbose": false, }`)
+```
+
+### Parse strict JSON (disable comments)
+
+TypeScript:
+
+```typescript
+const j = Jsonic.make().use(Jsonc, { disallowComments: true })
+j('{ "foo": /* not allowed */ true }') // throws
+```
+
+Go:
+
+```go
+j := jsonic.Make()
+j.Use(jsonc.Jsonc, map[string]any{"disallowComments": true})
+```
+
+### Handle parse errors
+
+TypeScript — parse errors throw:
+
+```typescript
+try {
+  j('{ "bad": }')
+} catch (err) {
+  console.error(err.message)
+}
+```
+
+Go — errors are returned:
+
+```go
+if _, err := j.Parse(`{ "bad": }`); err != nil {
+    fmt.Println(err)
+}
+```
+
+### Parse a file
+
+TypeScript:
+
+```typescript
+import { readFileSync } from 'node:fs'
+const j = Jsonic.make().use(Jsonc, { allowTrailingComma: true })
+const config = j(readFileSync('tsconfig.json', 'utf8'))
+```
+
+Go:
+
+```go
+src, _ := os.ReadFile("tsconfig.json")
+j := jsonic.Make()
+j.Use(jsonc.Jsonc, map[string]any{"allowTrailingComma": true})
+config, _ := j.Parse(string(src))
+```
 
 
-## JSONC Format
+## Reference
 
-JSONC follows [RFC 8259](https://tools.ietf.org/html/rfc8259) (JSON) with
-these extensions:
+### TypeScript
+
+```typescript
+function Jsonc(jsonic: Jsonic, options?: JsoncOptions): void
+
+type JsoncOptions = {
+  allowTrailingComma?: boolean  // default: false
+  disallowComments?: boolean    // default: false
+}
+```
+
+Register with `jsonic.use(Jsonc, options?)`. After registration, invoke
+the jsonic instance as a function on a source string; it returns the
+parsed value or throws on syntax errors.
+
+| Option | Type | Default | Effect |
+|--------|------|---------|--------|
+| `allowTrailingComma` | `boolean` | `false` | Permit a trailing comma before `}` and `]` |
+| `disallowComments` | `boolean` | `false` | Reject `//` and `/* */` comments (strict JSON) |
+
+### Go
+
+```go
+func Jsonc(j *jsonic.Jsonic, pluginOpts map[string]any) error
+```
+
+Register with `j.Use(jsonc.Jsonc)` or `j.Use(jsonc.Jsonc, opts)` where
+`opts` is a `map[string]any`. `Parse` then returns `(any, error)` —
+`map[string]any` for objects, `[]any` for arrays, `float64` for numbers,
+`string`, `bool`, or `nil`.
+
+| Key | Type | Default | Effect |
+|-----|------|---------|--------|
+| `allowTrailingComma` | `bool` | `false` | Permit a trailing comma before `}` and `]` |
+| `disallowComments` | `bool` | `false` | Reject `//` and `/* */` comments (strict JSON) |
+
+
+## JSONC format
+
+JSONC follows [RFC 8259](https://tools.ietf.org/html/rfc8259) (JSON)
+with these extensions:
 
 - **Line comments**: `//` to end of line
 - **Block comments**: `/* */` (non-nesting)
 - **Trailing commas**: optional, in objects and arrays
 
-All other rules follow standard JSON:
+All other JSON rules apply:
+
 - Strings must be double-quoted
-- Only standard escape sequences: `\"` `\\` `\/` `\b` `\f` `\n` `\r` `\t` `\uXXXX`
-- Numbers: integer, decimal, scientific notation (no hex, octal, or binary)
+- Standard escapes only: `\"` `\\` `\/` `\b` `\f` `\n` `\r` `\t` `\uXXXX`
+- Numbers: integer, decimal, scientific notation (no hex, octal, binary)
 - Keywords: `true`, `false`, `null` (case-sensitive)
 - Property names must be double-quoted strings
+
+### Conformance notes
+
+The plugin layers JSONC rules on top of jsonic, which is intentionally
+lenient in some places vs. strict RFC 8259. The test suite runs the
+[nst/JSONTestSuite](https://github.com/nst/JSONTestSuite) corpus in
+strict mode (`disallowComments: true`) and pins the known-lenient
+cases in `test/jsontestsuite.test.ts` (see `N_KNOWN_LENIENT`). Examples
+of accepted-but-non-RFC input include numbers with leading zeros and
+unquoted object keys. Use an RFC-strict parser if byte-perfect RFC 8259
+rejection is required.
 
 
 ## Acknowledgments

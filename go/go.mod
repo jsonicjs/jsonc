@@ -2,6 +2,4 @@ module github.com/jsonicjs/jsonc/go
 
 go 1.24.7
 
-require github.com/jsonicjs/jsonic/go v0.1.18
-
-replace github.com/jsonicjs/jsonic/go => ../../jsonic/go
+require github.com/jsonicjs/jsonic/go v0.1.19
