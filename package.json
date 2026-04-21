@@ -1,6 +1,6 @@
 {
   "name": "@jsonic/jsonc",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "This plugin allows the Jsonic JSON parser to support JSONC syntax.",
   "author": "Richard Rodger (http://richardrodger.com)",
   "license": "MIT",
@@ -16,18 +16,22 @@
     "jsonic"
   ],
   "scripts": {
-    "test": "node --enable-source-maps --experimental-strip-types --test test/jsonc.test.ts test/jsontestsuite.test.ts",
-    "build": "node embed-grammar.js && tsc -p src",
-    "watch": "tsc -p src --watch",
+    "test": "node --enable-source-maps --test \"dist-test/*.test.js\"",
+    "test-some": "node --enable-source-maps --test-name-pattern=\"$npm_config_pattern\" --test \"dist-test/*.test.js\"",
     "embed": "node embed-grammar.js",
-    "reset": "rm -rf dist node_modules package-lock.json && npm install && npm run build"
+    "watch": "tsc --build src test -w",
+    "build": "node embed-grammar.js && tsc --build src test",
+    "clean": "rm -rf dist dist-test node_modules yarn.lock package-lock.json",
+    "reset": "npm run clean && npm i && npm run build && npm test",
+    "repo-tag": "REPO_VERSION=`node -e \"console.log(require('./package').version)\"` && echo TAG: v$REPO_VERSION && git commit -a -m v$REPO_VERSION && git push && git tag v$REPO_VERSION && git push --tags;",
+    "repo-publish": "npm run clean && npm i && npm run repo-publish-quick",
+    "repo-publish-quick": "npm run build && npm run test && npm run repo-tag && npm publish --access public --registry https://registry.npmjs.org "
   },
   "peerDependencies": {
-    "jsonic": ">=2.24.0"
+    "jsonic": ">=2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "jsonic": "github:jsonicjs/jsonic#main",
     "typescript": "^5.6.3"
   },
   "files": [
