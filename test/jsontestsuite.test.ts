@@ -18,14 +18,12 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
 import { readdirSync, readFileSync, existsSync } from 'node:fs'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
 
 import { Jsonic } from 'jsonic'
 import { Jsonc } from '../dist/jsonc.js'
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const SUITE_DIR = join(__dirname, 'JSONTestSuite', 'test_parsing')
+const SUITE_DIR = join(__dirname, '..', 'test', 'JSONTestSuite', 'test_parsing')
 
 const j = Jsonic.make().use(Jsonc, { disallowComments: true })
 
