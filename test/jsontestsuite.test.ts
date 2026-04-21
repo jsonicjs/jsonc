@@ -1,8 +1,8 @@
 /* Copyright (c) 2021-2025 Richard Rodger and other contributors, MIT License */
 
 // Uses the nst/JSONTestSuite corpus (Copyright (c) 2016 Nicolas Seriot,
-// MIT License) vendored as a git submodule at test/JSONTestSuite/. Its
-// LICENSE travels with the submodule; see also THIRD_PARTY_NOTICES.md.
+// MIT License) vendored at test/JSONTestSuite/. The upstream LICENSE is
+// kept in place; see also THIRD_PARTY_NOTICES.md.
 
 // Runs the nst/JSONTestSuite (RFC 8259) against the jsonc plugin in strict
 // mode (disallowComments: true, no trailing commas). Each file in

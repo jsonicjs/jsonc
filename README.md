@@ -231,7 +231,7 @@ rejection is required.
 Conformance testing uses third-party corpora under MIT License:
 
 - [nst/JSONTestSuite](https://github.com/nst/JSONTestSuite) by Nicolas
-  Seriot — vendored as a git submodule at `test/JSONTestSuite/`.
+  Seriot — vendored at `test/JSONTestSuite/` (the `test_parsing/` corpus).
 - [microsoft/node-jsonc-parser](https://github.com/microsoft/node-jsonc-parser) —
   parse-level test cases ported into `test/jsonc.test.ts`.
 

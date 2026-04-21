@@ -5,9 +5,10 @@ original copyright notices and license texts are preserved as required.
 
 ## nst/JSONTestSuite
 
-Used as a git submodule at `test/JSONTestSuite/` for RFC 8259 conformance
-testing via `test/jsontestsuite.test.ts`. The submodule's `LICENSE` file
-is preserved in place.
+Vendored at `test/JSONTestSuite/` for RFC 8259 conformance testing via
+`test/jsontestsuite.test.ts`. Only the `test_parsing/` corpus, `LICENSE`,
+and `README.md` from the upstream project are included; the upstream
+`LICENSE` is preserved in place.
 
 - Project: https://github.com/nst/JSONTestSuite
 - License: MIT
