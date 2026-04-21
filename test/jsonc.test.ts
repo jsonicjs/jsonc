@@ -1,5 +1,9 @@
 /* Copyright (c) 2021-2025 Richard Rodger and other contributors, MIT License */
 
+// Parse-level test cases in this file were ported from
+// microsoft/node-jsonc-parser (src/test/json.test.ts), Copyright (c)
+// Microsoft Corporation, MIT License. See THIRD_PARTY_NOTICES.md.
+
 import { test, describe } from 'node:test'
 import assert from 'node:assert'
 
