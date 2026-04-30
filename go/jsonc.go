@@ -6,7 +6,7 @@ import (
 	jsonic "github.com/jsonicjs/jsonic/go"
 )
 
-const Version = "0.1.1"
+const Version = "0.1.2"
 
 // --- BEGIN EMBEDDED jsonc-grammar.jsonic ---
 const grammarText = `
